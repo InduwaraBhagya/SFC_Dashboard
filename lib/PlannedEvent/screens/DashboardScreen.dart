@@ -766,7 +766,7 @@ import 'DashboardHome.dart';
 import 'ProjectScreen.dart';
 import 'WorkGroupScreen.dart';
 import 'AreaNetworkEngineerScreen.dart';
-import '../../CreateUserScreen.dart';
+import '../../OnboardingScreen.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -957,7 +957,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const CreateUserScreen(),
+            builder: (context) => OnboardingScreen(userId: widget.userId),
           ),
         );
         return false;
@@ -976,6 +976,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             statusBarIconBrightness: Brightness.light,
           ),
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OnboardingScreen(userId: widget.userId),
+                ),
+              );
+            },
+          ),
           iconTheme: const IconThemeData(color: Colors.white),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -167,6 +167,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../OnboardingScreen.dart';
 import 'DashboardHome.dart';
 import 'NotificationScreen.dart';
 import 'WorkGroupScreen.dart';
@@ -213,7 +214,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const CreateUserScreen(),
+            builder: (context) => const OnboardingScreen(userId: 0),
           ),
         );
         return false;
@@ -234,6 +235,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             statusBarIconBrightness: Brightness.light,
           ),
           automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OnboardingScreen(userId: 0),
+                ),
+              );
+            },
+          ),
           iconTheme: const IconThemeData(color: Colors.white),
 
           // Updated title with role
