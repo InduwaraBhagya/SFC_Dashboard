@@ -1,0 +1,122 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.sfc_dashboard"
+    compileSdk = 36
+    ndkVersion = flutter.ndkVersion
+
+    defaultConfig {
+        applicationId = "com.example.sfc_dashboard"
+        minSdkVersion flutter.minSdkVersion
+        targetSdkVersion 36
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+
+        ndkVersion "27.0.12077973"
+
+        manifestPlaceholders = [
+            appAuthRedirectScheme: "https",
+            applicationName: "io.flutter.app.FlutterApplication"
+        ]
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            // Use debug key for now – replace with your release signing config later
+            signingConfig = signingConfigs.debug
+        }
+    }
+
+    // Java & Kotlin compatibility
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    // Force AndroidX core version (fix for flutter_web_auth)
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.core:core:1.13.1'
+            force 'androidx.core:core-ktx:1.13.1'
+        }
+    }
+
+    // Lint configuration (modern replacement for lintOptions)
+    lint {
+        disable 'InvalidPackage'
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.14.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.activity:activity:1.8.2'
+    implementation 'androidx.fragment:fragment:1.6.2'
+    implementation 'androidx.core:core:1.13.1'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    
+    // Additional dependencies for Microsoft authentication
+    implementation 'androidx.browser:browser:1.7.0'
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+    
+    // Input method compatibility (fix for the crash)
+    implementation 'androidx.core:core:1.12.0'
+    implementation 'androidx.annotation:annotation:1.7.1'
+    implementation 'androidx.collection:collection:1.4.0'
+    implementation 'androidx.lifecycle:lifecycle-common:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.7.0'
+    implementation 'androidx.savedstate:savedstate:1.2.1'
+    // implementation 'androidx.inputmethod:inputmethod:1.0.0'
+
+    constraints {
+        implementation('androidx.core:core') {
+            version {
+                strictly '1.12.0'
+            }
+        }
+        implementation('androidx.core:core-ktx') {
+            version {
+                strictly '1.12.0'
+            }
+        }
+    }
+}
+
+// Fix for flutter_web_auth namespace issue
+android.applicationVariants.all { variant ->
+    variant.outputs.all { output ->
+        output.versionCodeOverride = variant.versionCode
+    }
+}
+
+// Task to copy debug APK to where Flutter expects it
+android.applicationVariants.all { variant ->
+    if (variant.buildType.name == 'debug') {
+        variant.assembleProvider.get().doLast {
+            def src = file("${buildDir}/outputs/apk/debug/app-debug.apk")
+            def destDir = file("${project.rootDir}/../build/app/outputs/flutter-apk")
+            def dest = file("${destDir}/app-debug.apk")
+            if (src.exists()) {
+                destDir.mkdirs()
+                dest.bytes = src.bytes
+                println "Copied debug APK to: ${dest}"
+            }
+        }
+    }
+}
+
+

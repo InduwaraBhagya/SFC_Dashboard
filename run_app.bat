@@ -1,0 +1,9 @@
+@echo off
+echo Building Flutter app...
+flutter build apk --debug
+echo Installing APK...
+adb install -r android\app\build\outputs\apk\debug\app-debug.apk
+echo Starting app...
+adb shell am start -n com.example.sfc_dashboard/com.example.sfc_dashboard.MainActivity
+echo App is now running!
+pause 

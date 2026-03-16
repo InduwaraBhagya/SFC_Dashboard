@@ -1,0 +1,7 @@
+{
+  "buildOutputs": {
+    "android": {
+      "apkLocation": "android/app/build/outputs/apk/debug/app-debug.apk"
+    }
+  }
+} 
