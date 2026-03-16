@@ -760,14 +760,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../service/AuthService.dart';
 import '../model/UserRole.dart';
-import '../model/WorkGroup.dart';
 import 'ProfileScreen.dart';
 import 'DashboardHome.dart';
 import 'ProjectScreen.dart';
 import 'WorkGroupScreen.dart';
 import 'AreaNetworkEngineerScreen.dart';
 import '../../OnboardingScreen.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int userId;
@@ -793,10 +791,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<int>? workGroupIds;
   List<String>? workGroupNames;
 
-  // WorkGroup filter
-  List<WorkGroup> _allWorkGroups = [];
-  final List<WorkGroup> _selectedWorkGroups = [];
-
   // Loading/Error states
   bool isLoading = true;
   String? errorMessage;
@@ -817,7 +811,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
 
     fetchUserProfile();
-    fetchWorkGroups(); // Fetch all workgroups for filter
   }
 
   Future<void> fetchUserProfile() async {
@@ -873,81 +866,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<void> fetchWorkGroups() async {
-    try {
-      final workGroups = await _authService.getWorkGroups();
-      setState(() {
-        _allWorkGroups = workGroups;
-      });
-    } catch (e) {
-      // ignore errors for dropdown
-    }
-  }
-
   void _openEndDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
-  }
-
-  Widget workGroupFilter() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      margin: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.deepPurpleAccent,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.filter_list, color: Colors.white),
-          const SizedBox(width: 8),
-          // const Text(
-          //   "WORKGROUP FILTER",
-          //   style: TextStyle(
-          //     color: Colors.white,
-          //     fontWeight: FontWeight.bold,
-          //   ),
-          // ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Container(
-              height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton2<WorkGroup>(
-                  isExpanded: true,
-                  hint: const Text("Select Workgroup"),
-                  items: _allWorkGroups
-                      .map(
-                        (wg) => DropdownMenuItem(
-                          value: wg,
-                          child: Text(
-                            wg.name,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null && !_selectedWorkGroups.contains(value)) {
-                      setState(() {
-                        _selectedWorkGroups.add(value);
-                      });
-                    }
-                  },
-                  dropdownStyleData: const DropdownStyleData(
-                    maxHeight: 250,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -1038,15 +958,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: const TextStyle(color: Colors.red),
                     ),
                   )
-                : Column(
-                    children: [
-                      // WORKGROUP FILTER
-                      workGroupFilter(),
-
-                      // Expanded Dashboard Page
-                      Expanded(child: _pages[myIndex]),
-                    ],
-                  ),
+                : _pages[myIndex],
         endDrawer: Drawer(
           child: ListView(
             padding: EdgeInsets.zero,
