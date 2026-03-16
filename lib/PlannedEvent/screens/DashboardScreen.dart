@@ -885,7 +885,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-          toolbarHeight: 70,
+          toolbarHeight: 90,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
           ),
