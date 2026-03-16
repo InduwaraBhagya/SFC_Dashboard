@@ -928,6 +928,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   fontWeight: FontWeight.w400,
                 ),
               ),
+              if (workGroupNames != null && workGroupNames!.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  workGroupNames!.join(', '),
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ],
             ],
           ),
           actions: [
