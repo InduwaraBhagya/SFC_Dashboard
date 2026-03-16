@@ -285,7 +285,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                   ),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
-                    initialValue: selectedSearchBy,
+                    value: selectedSearchBy,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.grey.shade100,
