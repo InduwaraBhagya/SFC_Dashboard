@@ -251,9 +251,9 @@ class _DashboardHomeState extends State<DashboardHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           children: [
             Container(
               margin: const EdgeInsets.only(top: 10.0, bottom: 10.0),
@@ -390,100 +390,98 @@ class _DashboardHomeState extends State<DashboardHome> {
               ),
             ),
             const SizedBox(height: 20),
-            Flexible(
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1.0,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _buildGridItem(
+            GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.0,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                _buildGridItem(
+                  context,
+                  title: 'Urgent Records',
+                  gradientColors: [
+                    const Color.fromARGB(242, 214, 96, 96),
+                    const Color.fromARGB(255, 164, 2, 2),
+                  ],
+                  imagePath: 'assets/images/Urgent.png',
+                  taskColor: Colors.red,
+                  taskCount: _urgentRecordCount ?? 0,
+                  isLoading: _isLoadingUrgentCount,
+                  error: _urgentCountError,
+                  onTap: () => Navigator.push(
                     context,
-                    title: 'Urgent Records',
-                    gradientColors: [
-                      const Color.fromARGB(242, 214, 96, 96),
-                      const Color.fromARGB(255, 164, 2, 2),
-                    ],
-                    imagePath: 'assets/images/Urgent.png',
-                    taskColor: Colors.red,
-                    taskCount: _urgentRecordCount ?? 0,
-                    isLoading: _isLoadingUrgentCount,
-                    error: _urgentCountError,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              const UrgentRecordScreen(user: {})),
-                    ).catchError((e) => debugPrint(
-                        'Navigation error to UrgentRecordScreen: $e')),
-                  ),
-                  _buildGridItem(
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            const UrgentRecordScreen(user: {})),
+                  ).catchError((e) => debugPrint(
+                      'Navigation error to UrgentRecordScreen: $e')),
+                ),
+                _buildGridItem(
+                  context,
+                  title: 'Regular Records',
+                  gradientColors: [
+                    const Color.fromARGB(213, 89, 211, 99),
+                    const Color.fromARGB(255, 4, 152, 16),
+                  ],
+                  imagePath: 'assets/images/Regular.png',
+                  taskColor: const Color.fromARGB(255, 72, 252, 114),
+                  taskCount: _regularRecordCount ?? 0,
+                  isLoading: _isLoadingRegularCount,
+                  error: _regularCountError,
+                  onTap: () => Navigator.push(
                     context,
-                    title: 'Regular Records',
-                    gradientColors: [
-                      const Color.fromARGB(213, 89, 211, 99),
-                      const Color.fromARGB(255, 4, 152, 16),
-                    ],
-                    imagePath: 'assets/images/Regular.png',
-                    taskColor: const Color.fromARGB(255, 72, 252, 114),
-                    taskCount: _regularRecordCount ?? 0,
-                    isLoading: _isLoadingRegularCount,
-                    error: _regularCountError,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RegularRecordScreen(
-                          user: {}, // Replace with actual user data
-                        ),
+                    MaterialPageRoute(
+                      builder: (context) => const RegularRecordScreen(
+                        user: {}, // Replace with actual user data
                       ),
-                    ).catchError((e) => debugPrint(
-                        'Navigation error to RegularRecordScreen: $e')),
-                  ),
-                  _buildGridItem(
+                    ),
+                  ).catchError((e) => debugPrint(
+                      'Navigation error to RegularRecordScreen: $e')),
+                ),
+                _buildGridItem(
+                  context,
+                  title: 'OLA Violate Records',
+                  gradientColors: [
+                    const Color.fromARGB(225, 82, 126, 238),
+                    const Color.fromARGB(255, 7, 0, 99),
+                  ],
+                  imagePath: 'assets/images/OLA violate.png',
+                  taskColor: const Color.fromARGB(255, 45, 45, 228),
+                  taskCount: _olaViolateCount ?? 0,
+                  isLoading: _isLoadingOlaCount,
+                  error: _olaCountError,
+                  onTap: () => Navigator.push(
                     context,
-                    title: 'OLA Violate Records',
-                    gradientColors: [
-                      const Color.fromARGB(225, 82, 126, 238),
-                      const Color.fromARGB(255, 7, 0, 99),
-                    ],
-                    imagePath: 'assets/images/OLA violate.png',
-                    taskColor: const Color.fromARGB(255, 45, 45, 228),
-                    taskCount: _olaViolateCount ?? 0,
-                    isLoading: _isLoadingOlaCount,
-                    error: _olaCountError,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const OLAViolateRecordScreen(
-                          user: {}, // Replace with actual user data
-                        ),
+                    MaterialPageRoute(
+                      builder: (context) => const OLAViolateRecordScreen(
+                        user: {}, // Replace with actual user data
                       ),
-                    ).catchError((e) => debugPrint(
-                        'Navigation error to OLAViolateRecordScreen: $e')),
-                  ),
-                  _buildGridItem(
+                    ),
+                  ).catchError((e) => debugPrint(
+                      'Navigation error to OLAViolateRecordScreen: $e')),
+                ),
+                _buildGridItem(
+                  context,
+                  title: 'Hold Records',
+                  gradientColors: [
+                    const Color.fromARGB(255, 240, 181, 4),
+                    const Color.fromARGB(255, 251, 236, 101),
+                  ],
+                  imagePath: 'assets/images/Hold.png',
+                  taskColor: const Color.fromARGB(255, 226, 186, 64),
+                  taskCount: _holdRecordCount ?? 0,
+                  isLoading: _isLoadingHoldCount,
+                  error: _holdCountError,
+                  onTap: () => Navigator.push(
                     context,
-                    title: 'Hold Records',
-                    gradientColors: [
-                      const Color.fromARGB(255, 240, 181, 4),
-                      const Color.fromARGB(255, 251, 236, 101),
-                    ],
-                    imagePath: 'assets/images/Hold.png',
-                    taskColor: const Color.fromARGB(255, 226, 186, 64),
-                    taskCount: _holdRecordCount ?? 0,
-                    isLoading: _isLoadingHoldCount,
-                    error: _holdCountError,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const HoldRecordScreen()),
-                    ).catchError((e) =>
-                        debugPrint('Navigation error to HoldRecordScreen: $e')),
-                  ),
-                ],
-              ),
+                    MaterialPageRoute(
+                        builder: (context) => const HoldRecordScreen()),
+                  ).catchError((e) =>
+                      debugPrint('Navigation error to HoldRecordScreen: $e')),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
 
