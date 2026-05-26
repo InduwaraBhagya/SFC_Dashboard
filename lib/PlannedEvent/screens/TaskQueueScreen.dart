@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'DashboardScreen.dart';
 import '../model/TaskQueue.dart';
 import '../service/TaskQueueService.dart';
 
@@ -16,21 +18,33 @@ class TaskQueueScreen extends StatefulWidget {
 }
 
 class _TaskQueueScreenState extends State<TaskQueueScreen> {
-  late final TaskQueueService _taskQueueService = TaskQueueService(
-    accessToken: widget.accessToken,
-  );
+  late final TaskQueueService _taskQueueService;
   List<TaskQueueItem> _tasks = [];
-  List<int> _availableYears = [];
-  int? _selectedWorkgroupId;
+  bool _isLoading = true;
   int? _selectedYear;
-  bool _isLoading = false;
+  int? _selectedWorkgroupId;
+  List<int> _availableYears = [];
+  String _searchQuery = '';
   String? _errorMessage;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  int? _userId;
 
   @override
   void initState() {
     super.initState();
+    _taskQueueService = TaskQueueService();
+    _loadUserId();
     _loadAvailableYears();
     _loadTasks();
+  }
+
+  Future<void> _loadUserId() async {
+    final storedId = await _storage.read(key: 'userId');
+    if (storedId != null) {
+      setState(() {
+        _userId = int.tryParse(storedId);
+      });
+    }
   }
 
   Future<void> _loadAvailableYears() async {
@@ -74,6 +88,11 @@ class _TaskQueueScreenState extends State<TaskQueueScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredTasks = _tasks.where((task) {
+      final peNum = task.task.plannedEvent?.peNumber ?? '';
+      return peNum.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -101,7 +120,19 @@ class _TaskQueueScreenState extends State<TaskQueueScreen> {
         elevation: 4,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (_userId != null) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DashboardScreen(userId: _userId!),
+                ),
+                (route) => false,
+              );
+            } else {
+              Navigator.pop(context);
+            }
+          },
         ),
         actions: [
           IconButton(
@@ -113,7 +144,25 @@ class _TaskQueueScreenState extends State<TaskQueueScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search by PE Number...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
@@ -171,9 +220,9 @@ class _TaskQueueScreenState extends State<TaskQueueScreen> {
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.all(16.0),
-                        itemCount: _tasks.length,
+                        itemCount: filteredTasks.length,
                         itemBuilder: (context, index) {
-                          final task = _tasks[index];
+                          final task = filteredTasks[index];
                           return Card(
                             elevation: 4,
                             shape: RoundedRectangleBorder(

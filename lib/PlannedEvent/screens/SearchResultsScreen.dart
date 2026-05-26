@@ -188,7 +188,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                                 final peRecord = PERecord.fromJson(
                                     record as Map<String, dynamic>);
                                 return Card(
-                                  key: ValueKey(peRecord.pENUMBER ?? index),
+                                  key: ValueKey(peRecord.peNumber ?? index),
                                   elevation: 4,
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12)),
@@ -200,13 +200,13 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                                           const EdgeInsets.symmetric(
                                               horizontal: 16.0, vertical: 8.0),
                                       title: Text(
-                                        'PE Number: ${peRecord.pENUMBER ?? 'N/A'}',
+                                        'PE Number: ${peRecord.peNumber ?? 'N/A'}',
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16),
                                       ),
                                       subtitle: Text(
-                                        'Customer: ${peRecord.cUSTOMER ?? 'N/A'}',
+                                        'Customer: ${peRecord.customer ?? 'N/A'}',
                                         style: const TextStyle(
                                             fontSize: 14,
                                             color: Colors.black54),
@@ -214,13 +214,13 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                                     ),
                                     children: [
                                       _buildFieldRow('Service Type',
-                                          peRecord.servicE_TYPE ?? 'N/A'),
+                                          peRecord.serviceType ?? 'N/A'),
                                       _buildFieldRow('Customer',
-                                          peRecord.cUSTOMER ?? 'N/A'),
+                                          peRecord.customer ?? 'N/A'),
                                       _buildFieldRow('Province',
                                           peRecord.province ?? 'N/A'),
                                       _buildFieldRow('SO Number',
-                                          peRecord.sONUMBER ?? 'N/A'),
+                                          peRecord.soNumber ?? 'N/A'),
                                       Padding(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 16.0, vertical: 8.0),
