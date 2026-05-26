@@ -1220,7 +1220,7 @@ class _AreaNetworkEngineerScreenState extends State<AreaNetworkEngineerScreen> {
   bool _isSearchBarExpanded = false;
   final TextEditingController _areaController = TextEditingController();
   String? _engineerName;
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   @override
   void initState() {

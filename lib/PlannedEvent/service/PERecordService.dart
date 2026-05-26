@@ -6,9 +6,13 @@ import 'package:flutter/foundation.dart';
 import '../model/PERecord.dart';
 
 class PERecordService {
+  final http.Client _client;
+
+  PERecordService({http.Client? client}) : _client = client ?? http.Client();
   Future<Map<String, dynamic>> fetchPERecords({
     int page = 1,
     int pageSize = 20,
+    String? searchCategory,
     String? searchTerm,
   }) async {
     try {
@@ -17,14 +21,14 @@ class PERecordService {
         throw Exception('API_BASE_URL is not configured in .env');
       }
 
-      // Using existing endpoint pattern from DetailsRecordsService
-      final String fullApiUrl =
-          '$apiUrl/api/PlannedEventsApi/search-user-paginated';
+      final String fullApiUrl = '$apiUrl/api/PERecordsApi/filter';
       final queryParams = {
         'page': page.toString(),
         'pageSize': pageSize.toString(),
+        if (searchCategory != null && searchCategory.isNotEmpty)
+          'searchCategory': searchCategory,
         if (searchTerm != null && searchTerm.isNotEmpty)
-          'searchTerm': searchTerm,
+          'searchValue': searchTerm,
       };
 
       final uri = Uri.parse(fullApiUrl).replace(queryParameters: queryParams);
@@ -32,9 +36,12 @@ class PERecordService {
         print('Fetching PE records: $uri');
       }
 
-      final response = await http.get(
+      final response = await _client.get(
         uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${dotenv.env['ACCESS_TOKEN'] ?? ''}'
+        },
       ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
@@ -42,8 +49,9 @@ class PERecordService {
             jsonDecode(response.body) as Map<String, dynamic>;
 
         // Handle potential wrapped data (e.g. data['records']['$values'])
-        final List<dynamic> recordsJson = responseData['records']
-                ?['\$values'] ??
+        final List<dynamic> recordsJson = responseData['data']?['values'] ??
+            responseData['data']?['\$values'] ??
+            responseData['records']?['\$values'] ??
             responseData['records'] ??
             responseData['Data'] ??
             responseData['data'] ??
@@ -64,13 +72,16 @@ class PERecordService {
             .cast<PERecord>()
             .toList();
 
+        final pagination = responseData['pagination'] ?? {};
+
         return {
           'records': records,
-          'totalCount': responseData['totalItems'] ??
+          'totalCount': pagination['totalRecords'] ??
+              responseData['totalItems'] ??
               responseData['totalCount'] ??
               records.length,
-          'currentPage': responseData['currentPage'] ?? page,
-          'totalPages':
+          'currentPage': pagination['currentPage'] ?? responseData['currentPage'] ?? page,
+          'totalPages': pagination['totalPages'] ??
               responseData['totalPages'] ?? (records.length / pageSize).ceil(),
         };
       } else {
@@ -105,7 +116,7 @@ class PERecordService {
         print('Payload: ${jsonEncode(data)}');
       }
 
-      final response = await http
+      final response = await _client
           .post(
             Uri.parse(fullApiUrl),
             headers: {'Content-Type': 'application/json'},
@@ -136,7 +147,7 @@ class PERecordService {
       final String query =
           '$apiUrl/api/PERecordsApi/filter?page=1&pageSize=10&searchCategory=PE%20Number&searchValue=${Uri.encodeComponent(peNumber)}';
 
-      final response = await http.get(
+      final response = await _client.get(
         Uri.parse(query),
         headers: {
           'Content-Type': 'application/json',

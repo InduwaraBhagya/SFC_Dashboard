@@ -448,11 +448,9 @@ import 'package:excel/excel.dart' hide Border;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import '../model/ProjectDetailsDto.dart';
 import '../model/OLAViolateRecord.dart';
 import '../service/ProjectService.dart';
@@ -579,7 +577,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 builder: (context) => PEDetailsScreen(peRecord: peRecord)));
       } else {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('PE Record not found')));
+            .showSnackBar(const SnackBar(content: Text('PE Record not found')));
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -884,10 +882,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             selected: isSelected,
             onSelectChanged: (val) {
               setState(() {
-                if (val == true)
+                if (val == true) {
                   _selectedPEIds.add(pe.id!);
-                else
+                } else {
                   _selectedPEIds.remove(pe.id);
+                }
               });
             },
             cells: [
@@ -895,10 +894,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 value: isSelected,
                 onChanged: (val) {
                   setState(() {
-                    if (val == true)
+                    if (val == true) {
                       _selectedPEIds.add(pe.id!);
-                    else
+                    } else {
                       _selectedPEIds.remove(pe.id);
+                    }
                   });
                 },
               )),
@@ -1014,7 +1014,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       scrollDirection: Axis.horizontal,
       child: DataTable(
         columnSpacing: 20,
-        headingRowColor: MaterialStateProperty.all(Colors.grey.shade50),
+        headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
         columns: const [
           DataColumn(label: Text('Status')),
           DataColumn(label: Text('PE Number')),
@@ -1039,7 +1039,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           final currWg = pe.currentWg ?? pe.plannedEvent?.pendingWg ?? '';
 
           return DataRow(cells: [
-            DataCell(const Icon(Icons.circle, color: Colors.green, size: 16)),
+            const DataCell(Icon(Icons.circle, color: Colors.green, size: 16)),
             DataCell(Text(peNo)),
             DataCell(Text(cust)),
             DataCell(Text(jobRef)),

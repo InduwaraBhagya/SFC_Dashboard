@@ -132,8 +132,10 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../model/WorkGroupModel.dart';
+import 'AuthService.dart';
 
 class WorkGroupService {
+  final AuthService _authService = AuthService();
   String get baseUrl {
     final url = dotenv.env['API_BASE_URL'];
     if (url == null || url.isEmpty) {
@@ -144,7 +146,10 @@ class WorkGroupService {
 
   Future<List<WorkGroupDetails>> fetchWorkGroups() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/workgroups'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/workgroups'),
+        headers: await _authService.getAuthenticatedHeaders(),
+      );
       print('fetchWorkGroups - URL: $baseUrl/api/workgroups');
       print('fetchWorkGroups - Response status: ${response.statusCode}');
       print('fetchWorkGroups - Response body: ${response.body}');
@@ -182,8 +187,10 @@ class WorkGroupService {
 
   Future<List<WorkGroupDetails>> fetchWorkGroupDetails(int workGroupId) async {
     try {
-      final response =
-          await http.get(Uri.parse('$baseUrl/api/workgroups/$workGroupId'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/workgroups/$workGroupId'),
+        headers: await _authService.getAuthenticatedHeaders(),
+      );
       print(
           'fetchWorkGroupDetails - URL: $baseUrl/api/workgroups/$workGroupId');
       print('fetchWorkGroupDetails - Response status: ${response.statusCode}');
@@ -241,9 +248,13 @@ class WorkGroupService {
 
   Future<Map<String, dynamic>> createWorkGroup(String name) async {
     try {
+      final headers = await _authService.getAuthenticatedHeaders();
       final response = await http.post(
         Uri.parse('$baseUrl/api/WorkGroups'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json',
+        },
         body: json.encode({'name': name}),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -258,9 +269,13 @@ class WorkGroupService {
 
   Future<Map<String, dynamic>> updateWorkGroup(int id, String name) async {
     try {
+      final headers = await _authService.getAuthenticatedHeaders();
       final response = await http.put(
         Uri.parse('$baseUrl/api/WorkGroups/$id'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json',
+        },
         body: json.encode({'id': id, 'name': name}),
       );
       if (response.statusCode == 200 || response.statusCode == 204) {
@@ -277,6 +292,7 @@ class WorkGroupService {
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/api/WorkGroups/$id'),
+        headers: await _authService.getAuthenticatedHeaders(),
       );
       if (response.statusCode == 200 || response.statusCode == 204) {
         return {'success': true};

@@ -954,6 +954,8 @@ import 'package:excel/excel.dart' hide Border;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'DashboardScreen.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -981,6 +983,23 @@ class _PEReportScreenState extends State<PEReportScreen> {
   bool _isExporting = false;
   bool _isExportingPdf = false;
   String? _errorMessage;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  int? _userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId();
+  }
+
+  Future<void> _loadUserId() async {
+    final storedId = await _storage.read(key: 'userId');
+    if (storedId != null) {
+      setState(() {
+        _userId = int.tryParse(storedId);
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -1593,7 +1612,23 @@ class _PEReportScreenState extends State<PEReportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: true,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            if (_userId != null) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DashboardScreen(userId: _userId!),
+                ),
+                (route) => false,
+              );
+            } else {
+              Navigator.pop(context);
+            }
+          },
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'PE Report',

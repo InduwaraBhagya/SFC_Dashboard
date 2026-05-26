@@ -437,6 +437,7 @@
 // }
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
@@ -450,7 +451,7 @@ class AuthService {
   static const String tenantId = '534253fc-dfb6-462f-b5ca-cbe81939f5ee';
   static const String redirectUri = 'com.example.sfcdashboard://auth';
   static const String authority = 'https://login.microsoftonline.com/$tenantId';
-  final String baseUrl = dotenv.env['API_BASE_URL'] ??
+  final String baseUrl = (dotenv.env['API_BASE_URL']?.trim()) ??
       (throw Exception('API_BASE_URL not found in .env file'));
   static const List<String> _scopes = [
     'openid',
@@ -663,18 +664,16 @@ class AuthService {
           return SystemUser.fromJson(jsonResponse);
         }
       } else if (response.statusCode == 404) {
-        final jsonResponse = jsonDecode(response.body);
-        if (jsonResponse is String && jsonResponse.contains('not found')) {
-          return null;
-        }
+        return null;
+      } else if (response.statusCode == 403) {
+        return null;
       } else if (response.statusCode == 0 || response.body.isEmpty) {
-        // Handle offline or no response
-        throw Exception('Endpoint unavailable');
+        return null;
       }
-      throw Exception(
-          'Failed to check user by serviceId: ${response.statusCode}');
+      return null;
     } catch (e) {
-      throw Exception('Error checking user by serviceId: $e');
+      debugPrint('Error checking user by serviceId: $e');
+      return null;
     }
   }
 
@@ -775,12 +774,14 @@ class AuthService {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => UserRole.fromJson(json)).toList();
+      } else if (response.statusCode == 403) {
+        throw Exception('Forbidden (403): You do not have permission to access this data.');
       } else {
-        throw Exception(
-            'Failed to fetch user roles: ${response.statusCode} ${response.body}');
+        throw Exception('Failed to fetch user roles: ${response.statusCode} ${response.body}');
       }
     } catch (e) {
-      throw Exception('Error fetching user roles: $e');
+      debugPrint('Error fetching user roles: $e');
+      rethrow;
     }
   }
 
@@ -795,12 +796,46 @@ class AuthService {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => WorkGroup.fromJson(json)).toList();
+      } else if (response.statusCode == 403) {
+        throw Exception('Forbidden (403): You do not have permission to access this data.');
       } else {
-        throw Exception(
-            'Failed to fetch workgroups: ${response.statusCode} ${response.body}');
+        throw Exception('Failed to fetch workgroups: ${response.statusCode} ${response.body}');
       }
     } catch (e) {
-      throw Exception('Error fetching workgroups: $e');
+      debugPrint('Error fetching workgroups: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<WorkGroup>> getWorkGroupsByIds(List<int> ids) async {
+    if (ids.isEmpty) return [];
+    try {
+      final headers = await getAuthenticatedHeaders();
+      // Join IDs into a comma-separated string if the backend supports it, 
+      // or fetch them one by one if not.
+      // Looking at the backend, we have GetWorkGroupsByIdsAsync in the service.
+      // Let's see if there is a controller endpoint for it.
+      
+      // For now, let's fetch them individually as a fallback, or use the existing GetWorkGroups endpoint and filter.
+      // But a better way is to use the dedicated endpoint if it exists.
+      
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/workgroups/by-ids'),
+        headers: headers,
+        body: json.encode({'workgroupIds': ids}),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => WorkGroup.fromJson(json)).toList();
+      } else {
+        // Fallback: fetch all and filter (though inefficient, it works if the specific endpoint is missing)
+        final all = await getWorkGroups();
+        return all.where((wg) => ids.contains(wg.id)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching workgroups by ids: $e');
+      return [];
     }
   }
 
@@ -815,6 +850,8 @@ class AuthService {
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
+      'Bypass-Tunnel-Reminder': 'true',
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }

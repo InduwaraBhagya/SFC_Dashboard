@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'DashboardScreen.dart';
 import '../model/PERecord.dart';
 import '../service/PERecordService.dart';
 import 'PEDetailsScreen.dart';
@@ -17,12 +19,28 @@ class PEDetailsSearchScreen extends StatefulWidget {
 class _PEDetailsSearchScreenState extends State<PEDetailsSearchScreen> {
   final PERecordService _service = PERecordService();
   final TextEditingController _searchController = TextEditingController();
-
   String _searchBy = 'PE_NUMBER';
   List<PERecord> _results = [];
   bool _isSearching = false;
   bool _hasSearched = false;
   String? _errorMessage;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  int? _userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId();
+  }
+
+  Future<void> _loadUserId() async {
+    final storedId = await _storage.read(key: 'userId');
+    if (storedId != null) {
+      setState(() {
+        _userId = int.tryParse(storedId);
+      });
+    }
+  }
 
   final List<Map<String, String>> _searchCategories = [
     {'label': 'PE Number', 'value': 'PE_NUMBER'},
@@ -53,9 +71,14 @@ class _PEDetailsSearchScreenState extends State<PEDetailsSearchScreen> {
     });
 
     try {
+      String category = 'PE Number';
+      if (_searchBy == 'CUSTOMER') category = 'Customer';
+      if (_searchBy == 'SO_NUMBER') category = 'SO Number';
+
       final result = await _service.fetchPERecords(
         page: 1,
         pageSize: 50,
+        searchCategory: category,
         searchTerm: query,
       );
 
@@ -104,7 +127,23 @@ class _PEDetailsSearchScreenState extends State<PEDetailsSearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: true,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            if (_userId != null) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DashboardScreen(userId: _userId!),
+                ),
+                (route) => false,
+              );
+            } else {
+              Navigator.pop(context);
+            }
+          },
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'View PE Details',

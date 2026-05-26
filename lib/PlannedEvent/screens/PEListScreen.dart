@@ -52,9 +52,14 @@ class _PEListScreenState extends State<PEListScreen> {
     });
 
     try {
+      String category = 'PE Number';
+      if (_searchBy == 'CUSTOMER') category = 'Customer';
+      if (_searchBy == 'SO_NUMBER') category = 'SO Number';
+
       final result = await _service.fetchPERecords(
         page: page,
         pageSize: _pageSize,
+        searchCategory: category,
         searchTerm: _searchValue.isNotEmpty ? _searchValue : null,
       );
 

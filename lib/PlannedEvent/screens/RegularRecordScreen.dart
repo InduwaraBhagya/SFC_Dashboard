@@ -9,8 +9,14 @@ import 'package:flutter/foundation.dart';
 class RegularRecordScreen extends StatefulWidget {
   final String? workgroupName;
   final Map<String, dynamic> user;
+  final bool useRealData;
 
-  const RegularRecordScreen({super.key, this.workgroupName, required this.user});
+  const RegularRecordScreen({
+    super.key,
+    this.workgroupName,
+    required this.user,
+    this.useRealData = false,
+  });
 
   @override
   _RegularRecordScreenState createState() => _RegularRecordScreenState();
@@ -81,6 +87,7 @@ class _RegularRecordScreenState extends State<RegularRecordScreen> with SingleTi
         workgroupName: widget.workgroupName,
         page: page,
         pageSize: _pageSize,
+        fetchMultiWorkgroup: widget.useRealData,
       );
 
       final List<OLAViolateRecord> newRecords = (result['records'] as List<dynamic>?)?.cast<OLAViolateRecord>() ?? [];

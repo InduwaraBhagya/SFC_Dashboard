@@ -149,15 +149,20 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'AuthService.dart';
 import '../model/PEIsseueModel.dart';
 
 class PEService {
+  final AuthService _authService = AuthService();
   final String baseUrl = dotenv.env['API_BASE_URL'] ??
       (throw Exception('API_BASE_URL not found in .env file'));
 
   // PE Issues GET Endpoints
   Future<List<PEIssue>> getAllPEIssues() async {
-    final response = await http.get(Uri.parse('$baseUrl/api/peissues'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/peissues'),
+      headers: await _authService.getAuthenticatedHeaders(),
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => PEIssue.fromJson(json)).toList();
@@ -166,7 +171,10 @@ class PEService {
   }
 
   Future<PEIssue?> getPEIssue(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/api/peissues/$id'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/peissues/$id'),
+      headers: await _authService.getAuthenticatedHeaders(),
+    );
     if (response.statusCode == 200) {
       return PEIssue.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 404) {
@@ -176,8 +184,10 @@ class PEService {
   }
 
   Future<List<PEIssue>> getInboxIssues(int userId, int limit) async {
-    final response = await http
-        .get(Uri.parse('$baseUrl/api/peissues/inbox/$userId?limit=$limit'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/peissues/inbox/$userId?limit=$limit'),
+      headers: await _authService.getAuthenticatedHeaders(),
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => PEIssue.fromJson(json)).toList();
@@ -187,7 +197,9 @@ class PEService {
 
   Future<List<PEIssue>> getReminders(int userId, bool showAll) async {
     final response = await http.get(
-        Uri.parse('$baseUrl/api/peissues/reminders/$userId?showAll=$showAll'));
+      Uri.parse('$baseUrl/api/peissues/reminders/$userId?showAll=$showAll'),
+      headers: await _authService.getAuthenticatedHeaders(),
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => PEIssue.fromJson(json)).toList();
@@ -196,8 +208,10 @@ class PEService {
   }
 
   Future<int> getReminderCount(int userId) async {
-    final response = await http
-        .get(Uri.parse('$baseUrl/api/peissues/reminders/$userId/count'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/peissues/reminders/$userId/count'),
+      headers: await _authService.getAuthenticatedHeaders(),
+    );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as int;
     }
@@ -208,7 +222,7 @@ class PEService {
       List<int> peIds) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/peissues/by-plannedevent-ids'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await _authService.getAuthenticatedHeaders(),
       body: jsonEncode(peIds),
     );
     if (response.statusCode == 200) {
@@ -221,8 +235,10 @@ class PEService {
   }
 
   Future<List<PEIssue>> getPEIssuesByPlannedEvent(int plannedEventId) async {
-    final response = await http
-        .get(Uri.parse('$baseUrl/api/peissues/plannedevent/$plannedEventId'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/peissues/plannedevent/$plannedEventId'),
+      headers: await _authService.getAuthenticatedHeaders(),
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => PEIssue.fromJson(json)).toList();
@@ -233,8 +249,10 @@ class PEService {
 
   // PE Issue Resolutions GET Endpoints
   Future<List<PEIssueResolution>> getAllPEIssueResolutions() async {
-    final response =
-        await http.get(Uri.parse('$baseUrl/api/peissueresolutions'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/peissueresolutions'),
+      headers: await _authService.getAuthenticatedHeaders(),
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => PEIssueResolution.fromJson(json)).toList();
@@ -244,8 +262,10 @@ class PEService {
   }
 
   Future<PEIssueResolution?> getPEIssueResolution(int id) async {
-    final response =
-        await http.get(Uri.parse('$baseUrl/api/peissueresolutions/$id'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/peissueresolutions/$id'),
+      headers: await _authService.getAuthenticatedHeaders(),
+    );
     if (response.statusCode == 200) {
       return PEIssueResolution.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 404) {
@@ -256,8 +276,10 @@ class PEService {
   }
 
   Future<PEIssueResolution?> getPendingResolution(int issueId) async {
-    final response = await http
-        .get(Uri.parse('$baseUrl/api/peissueresolutions/pending/$issueId'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/peissueresolutions/pending/$issueId'),
+      headers: await _authService.getAuthenticatedHeaders(),
+    );
     if (response.statusCode == 200) {
       return PEIssueResolution.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 404) {
@@ -276,7 +298,7 @@ class PEService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/peissueresolutions/by-issue-ids'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _authService.getAuthenticatedHeaders(),
         body: jsonEncode(issueIds),
       );
 
@@ -302,8 +324,10 @@ class PEService {
   }
 
   Future<PEIssueResolution?> getByIssueId(int issueId) async {
-    final response = await http
-        .get(Uri.parse('$baseUrl/api/peissueresolutions/byissue/$issueId'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/peissueresolutions/byissue/$issueId'),
+      headers: await _authService.getAuthenticatedHeaders(),
+    );
     if (response.statusCode == 200) {
       return PEIssueResolution.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 404) {
@@ -317,7 +341,7 @@ class PEService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/peissues/mark-as-read/$issueId'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _authService.getAuthenticatedHeaders(),
       );
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {

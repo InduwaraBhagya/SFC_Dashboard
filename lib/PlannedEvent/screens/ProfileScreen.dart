@@ -1,3 +1,4 @@
+import 'DashboardScreen.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -33,7 +34,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUserId();
     fetchUserProfile();
+  }
+
+  Future<void> _loadUserId() async {
+    final storedId = await _storage.read(key: 'userId');
+    if (storedId != null) {
+      setState(() {
+        userId = int.tryParse(storedId);
+      });
+    }
   }
 
   Future<void> fetchUserProfile() async {
@@ -66,21 +77,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       // Map userRoleName
       userRoleName = userRoleId != null
-          ? userRoles.firstWhere(
-              (role) => role.id == userRoleId,
-              orElse: () => UserRole(id: 0, name: 'Unknown Role'),
-            ).name
+          ? userRoles
+              .firstWhere(
+                (role) => role.id == userRoleId,
+                orElse: () => UserRole(id: 0, name: 'Unknown Role', level: 0),
+              )
+              .name
           : 'User';
 
-     
       // Include names from permissions API
       final workgroupData =
           await _authService.getCurrentUserWorkgroupsWithPermissions();
       if (workgroupData != null &&
           workgroupData['userWorkgroupNames'] != null) {
-        workGroupNames!.addAll(
-            (workgroupData['userWorkgroupNames'] as List<dynamic>)
-                .cast<String>());
+        workGroupNames = (workgroupData['userWorkgroupNames'] as List<dynamic>)
+            .cast<String>();
       }
 
       jobTitle = userRoleName;
@@ -103,6 +114,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profile'),
         backgroundColor: const Color.fromARGB(226, 16, 37, 89),
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (userId != null) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DashboardScreen(userId: userId!),
+                ),
+                (route) => false,
+              );
+            } else {
+              Navigator.pop(context);
+            }
+          },
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -121,10 +149,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: CircleAvatar(
                           radius: 50,
                           backgroundColor: Colors.grey[300],
-                          backgroundImage: (photoBase64 != null &&
-                                  photoBase64!.isNotEmpty)
-                              ? MemoryImage(base64Decode(photoBase64!))
-                              : null,
+                          backgroundImage:
+                              (photoBase64 != null && photoBase64!.isNotEmpty)
+                                  ? MemoryImage(base64Decode(photoBase64!))
+                                  : null,
                           child: (photoBase64 == null || photoBase64!.isEmpty)
                               ? Text(
                                   name?.substring(0, 1).toUpperCase() ?? 'U',
@@ -138,7 +166,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 20),
                       _buildProfileItem('Name', name ?? 'Not available'),
                       _buildProfileItem('Email', email ?? 'Not available'),
-                      _buildProfileItem('User Role', jobTitle ?? 'Not available'),
+                      _buildProfileItem(
+                          'User Role', jobTitle ?? 'Not available'),
                       _buildProfileItem('User ID', userId?.toString() ?? 'N/A'),
                       // _buildProfileItem('Work Groups', workGroupNames?.join(', ') ?? 'None'),
                       const SizedBox(height: 30),

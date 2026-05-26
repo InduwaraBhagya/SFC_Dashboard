@@ -189,8 +189,10 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 import '../model/Notice.dart';
+import 'AuthService.dart';
 
 class NoticeService {
+  final AuthService _authService = AuthService();
   String get baseUrl {
     final url = dotenv.env['API_BASE_URL'];
     if (url == null || url.isEmpty) {
@@ -199,11 +201,9 @@ class NoticeService {
     return url;
   }
 
-  final String accessToken;
-
-  NoticeService({
-    required this.accessToken,
-  });
+  // NoticeService({
+  //   required this.accessToken,
+  // });
 
   Future<List<Notice>> getActiveNotices() async {
     try {
@@ -212,11 +212,14 @@ class NoticeService {
         print('Get Active Notices API Request URL: $uri');
       }
 
+      final headers = await _authService.getAuthenticatedHeaders();
       final response = await http.get(
         uri,
         headers: {
-          'Authorization': 'Bearer $accessToken',
+          ...headers,
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'Bypass-Tunnel-Reminder': 'true',
         },
       );
 
@@ -265,11 +268,14 @@ class NoticeService {
         print('Get Notice by ID API Request URL: $uri');
       }
 
+      final headers = await _authService.getAuthenticatedHeaders();
       final response = await http.get(
         uri,
         headers: {
-          'Authorization': 'Bearer $accessToken',
+          ...headers,
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'Bypass-Tunnel-Reminder': 'true',
         },
       );
 
@@ -305,11 +311,14 @@ class NoticeService {
         print('Create Notice API Body: ${jsonEncode(noticeData)}');
       }
 
+      final headers = await _authService.getAuthenticatedHeaders();
       final response = await http.post(
         uri,
         headers: {
-          'Authorization': 'Bearer $accessToken',
+          ...headers,
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'Bypass-Tunnel-Reminder': 'true',
         },
         body: jsonEncode(noticeData),
       );
@@ -344,11 +353,14 @@ class NoticeService {
         print('Update Notice API Body: ${jsonEncode(noticeData)}');
       }
 
+      final headers = await _authService.getAuthenticatedHeaders();
       final response = await http.put(
         uri,
         headers: {
-          'Authorization': 'Bearer $accessToken',
+          ...headers,
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'Bypass-Tunnel-Reminder': 'true',
         },
         body: jsonEncode(noticeData),
       );
@@ -367,24 +379,67 @@ class NoticeService {
     }
   }
 
-  Future<bool> deleteNotice(int id) async {
+  Future<bool> togglePinNotice(int id, bool isPinned, int updatedBy, String updatedUserName) async {
+    try {
+      final uri = Uri.parse('$baseUrl/api/NoticesApi/$id/pin');
+      if (kDebugMode) {
+        print('Toggle Pin Notice API Request URL: $uri');
+      }
+
+      final headers = await _authService.getAuthenticatedHeaders();
+      final response = await http.patch(
+        uri,
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'Bypass-Tunnel-Reminder': 'true',
+        },
+        body: jsonEncode({
+          'isPinned': isPinned,
+          'updatedBy': updatedBy,
+          'updatedUserName': updatedUserName,
+        }),
+      );
+
+      if (kDebugMode) {
+        print('Toggle Pin Notice API Response Status: ${response.statusCode}');
+      }
+
+      return response.statusCode == 204 || response.statusCode == 200;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error toggling pin notice: $e');
+      }
+      return false;
+    }
+  }
+
+  Future<bool> deleteNotice(int id, int updatedBy, String updatedUserName) async {
     try {
       final uri = Uri.parse('$baseUrl/api/NoticesApi/$id');
       if (kDebugMode) {
         print('Delete Notice API Request URL: $uri');
       }
 
-      final response = await http.delete(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Content-Type': 'application/json',
-        },
-      );
+      final headers = await _authService.getAuthenticatedHeaders();
+      
+      final request = http.Request('DELETE', uri);
+      request.headers.addAll({
+        ...headers,
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+        'Bypass-Tunnel-Reminder': 'true',
+      });
+      request.body = jsonEncode({
+        'updatedBy': updatedBy,
+        'updatedUserName': updatedUserName,
+      });
+
+      final response = await http.Client().send(request);
 
       if (kDebugMode) {
         print('Delete Notice API Response Status: ${response.statusCode}');
-        print('Delete Notice API Response Body: ${response.body}');
       }
 
       return response.statusCode == 204 || response.statusCode == 200;

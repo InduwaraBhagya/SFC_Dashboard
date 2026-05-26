@@ -1296,7 +1296,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
   final int _recordsPerPage = 10;
   late PageController _pageController;
   int _currentPage = 0;
-  bool _isSearchBarExpanded = false;
+  final bool _isSearchBarExpanded = false;
 
   @override
   void initState() {

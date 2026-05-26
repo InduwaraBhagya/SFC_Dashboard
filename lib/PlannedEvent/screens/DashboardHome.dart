@@ -1574,16 +1574,19 @@ import 'UrgentRecordScreen.dart';
 import 'RegularRecordScreen.dart';
 import 'OLAViolateRecordScreen.dart';
 import 'HoldRecordScreen.dart';
-import 'TaskQueueScreen.dart';
 import '../service/AuthService.dart';
 
 class DashboardHome extends StatefulWidget {
   final int userId;
   final List<int> selectedWorkGroupIds;
+  final String? userName;
+  final String? userRole;
   const DashboardHome({
     super.key,
     required this.userId,
-    this.selectedWorkGroupIds = const [], // <- default empty list
+    this.selectedWorkGroupIds = const [],
+    this.userName,
+    this.userRole,
   });
 
   @override
@@ -1620,12 +1623,8 @@ class _DashboardHomeState extends State<DashboardHome> {
   final RegularRecordService _regularService = RegularRecordService();
   final UrgentRecordService _urgentService = UrgentRecordService();
   final HoldRecordService _holdService = HoldRecordService();
-  final TaskQueueService taskQueueService = TaskQueueService(
-    accessToken: dotenv.env['ACCESS_TOKEN'] ?? '',
-  );
-  final NoticeService _noticeService = NoticeService(
-    accessToken: dotenv.env['ACCESS_TOKEN'] ?? '',
-  );
+  final TaskQueueService taskQueueService = TaskQueueService();
+  final NoticeService _noticeService = NoticeService();
   final AuthService _authService = AuthService();
 
   String? _currentUserName;
@@ -1636,14 +1635,84 @@ class _DashboardHomeState extends State<DashboardHome> {
   void initState() {
     super.initState();
     _fetchUserInfo();
+    _checkWorkgroupAndRefresh();
+    _fetchNotices();
+  }
+
+  bool _useRealData = false;
+  String? _selectedWorkgroupName;
+
+  void _checkWorkgroupAndRefresh() async {
+    if (widget.selectedWorkGroupIds.isNotEmpty) {
+      try {
+        final wgs = await _authService.getWorkGroupsByIds(widget.selectedWorkGroupIds);
+        if (wgs.isNotEmpty) {
+          _selectedWorkgroupName = wgs.first.name;
+          setState(() {
+            _useRealData = (_selectedWorkgroupName != 'NET-PROJ_CABLE-ACC' && 
+                            _selectedWorkgroupName != 'NET-PROJ-ACC-CABLE');
+          });
+        }
+      } catch (e) {
+        debugPrint('Error fetching workgroups for dashboard: $e');
+      }
+    } else {
+      setState(() {
+        _useRealData = false;
+      });
+    }
+    _refreshAllCounts();
+  }
+
+  @override
+  void didUpdateWidget(covariant DashboardHome oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Check if selected workgroups changed
+    bool workgroupsChanged = false;
+    if (oldWidget.selectedWorkGroupIds.length !=
+        widget.selectedWorkGroupIds.length) {
+      workgroupsChanged = true;
+    } else {
+      for (int i = 0; i < widget.selectedWorkGroupIds.length; i++) {
+        if (oldWidget.selectedWorkGroupIds[i] !=
+            widget.selectedWorkGroupIds[i]) {
+          workgroupsChanged = true;
+          break;
+        }
+      }
+    }
+
+    if (workgroupsChanged) {
+      _checkWorkgroupAndRefresh();
+    }
+
+    // Check if user info updated (e.g. from null to value after DashboardScreen finishes loading)
+    if (oldWidget.userName != widget.userName ||
+        oldWidget.userRole != widget.userRole) {
+      setState(() {
+        _currentUserName = widget.userName;
+        _currentUserRole = widget.userRole;
+      });
+    }
+  }
+
+  void _refreshAllCounts() {
     _fetchOlaViolateCount();
     _fetchRegularRecordCount();
     _fetchUrgentRecordCount();
     _fetchHoldRecordCount();
-    _fetchNotices();
   }
 
   Future<void> _fetchUserInfo() async {
+    // If name and role are passed via parameters, use them
+    if (widget.userName != null || widget.userRole != null) {
+      setState(() {
+        _currentUserName = widget.userName;
+        _currentUserRole = widget.userRole;
+      });
+      return;
+    }
+
     try {
       final user = await _authService.getUserById(widget.userId);
       final roles = await _authService.getUserRoles();
@@ -1670,14 +1739,28 @@ class _DashboardHomeState extends State<DashboardHome> {
     });
   }
 
+  int? get _selectedWorkGroupId {
+    // If only one workgroup is selected, return its ID
+    if (widget.selectedWorkGroupIds.length == 1) {
+      return widget.selectedWorkGroupIds.first;
+    }
+    // If multiple or zero workgroups are selected (e.g. "All"), return null
+    // to let the backend fetch for all user's workgroups.
+    return null;
+  }
+
   Future<void> _fetchOlaViolateCount() async {
     setState(() {
       _isLoadingOlaCount = true;
       _olaCountError = null;
     });
     try {
-      final result =
-          await _olaService.fetchOLAViolateRecords(page: 1, pageSize: 1);
+      final result = await _olaService.fetchOLAViolateRecords(
+        page: 1,
+        pageSize: 2000,
+        workgroupId: _selectedWorkGroupId,
+        fetchMultiWorkgroup: _useRealData,
+      );
       setState(() {
         _olaViolateCount = result['totalCount'] ?? 0;
         _isLoadingOlaCount = false;
@@ -1700,8 +1783,12 @@ class _DashboardHomeState extends State<DashboardHome> {
       _regularCountError = null;
     });
     try {
-      final result =
-          await _regularService.fetchRegularRecords(page: 1, pageSize: 1);
+      final result = await _regularService.fetchRegularRecords(
+        page: 1,
+        pageSize: 2000,
+        workgroupName: _selectedWorkGroupId?.toString(),
+        fetchMultiWorkgroup: _useRealData,
+      );
       setState(() {
         _regularRecordCount = result['totalCount'] ?? 0;
         _isLoadingRegularCount = false;
@@ -1724,8 +1811,12 @@ class _DashboardHomeState extends State<DashboardHome> {
       _urgentCountError = null;
     });
     try {
-      final result =
-          await _urgentService.fetchUrgentRecords(page: 1, pageSize: 1);
+      final result = await _urgentService.fetchUrgentRecords(
+        page: 1,
+        pageSize: 2000,
+        workgroupId: _selectedWorkGroupId,
+        fetchMultiWorkgroup: _useRealData,
+      );
       setState(() {
         _urgentRecordCount = result['totalCount'] ?? 0;
         _isLoadingUrgentCount = false;
@@ -1748,7 +1839,12 @@ class _DashboardHomeState extends State<DashboardHome> {
       _holdCountError = null;
     });
     try {
-      final result = await _holdService.getHoldRecords(pageSize: 1);
+      final result = await _holdService.fetchHoldRecords(
+        page: 1,
+        pageSize: 2000,
+        workgroupId: _selectedWorkGroupId,
+        fetchMultiWorkgroup: _useRealData,
+      );
       final List records = result['records'] ?? [];
       setState(() {
         _holdRecordCount = records.length;
@@ -1921,29 +2017,26 @@ class _DashboardHomeState extends State<DashboardHome> {
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              flex: 1,
-                              child: Column(
-                                children: [
-                                  _buildTeamSection(),
-                                  const SizedBox(height: 16),
-                                  _buildRecentActivitiesSection(),
-                                ],
-                              ),
-                            ),
+                            Expanded(child: _buildTeamSection()),
                             const SizedBox(width: 16),
-                            Expanded(
-                              flex: 1,
-                              child: _buildNoticesSection(),
-                            ),
+                            Expanded(child: _buildRecentActivitiesSection()),
+                            const SizedBox(width: 16),
+                            Expanded(child: _buildNoticesSection()),
                           ],
                         );
                       } else {
                         return Column(
                           children: [
-                            _buildTeamSection(),
-                            const SizedBox(height: 20),
-                            _buildRecentActivitiesSection(),
+                            IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(child: _buildTeamSection()),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: _buildRecentActivitiesSection()),
+                                ],
+                              ),
+                            ),
                             const SizedBox(height: 20),
                             _buildNoticesSection(),
                           ],
@@ -2044,7 +2137,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                 Flexible(
                   flex: 3,
                   child: DropdownButtonFormField<String>(
-                    value: selectedSearchBy,
+                    initialValue: selectedSearchBy,
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 8),
@@ -2113,7 +2206,12 @@ class _DashboardHomeState extends State<DashboardHome> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => const UrgentRecordScreen(user: {})),
+              builder: (context) => UrgentRecordScreen(
+                user: const {},
+                workgroupId: _selectedWorkGroupId,
+                useRealData: _useRealData,
+              ),
+            ),
           ),
         ),
         _buildGridItem(
@@ -2131,7 +2229,12 @@ class _DashboardHomeState extends State<DashboardHome> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => const RegularRecordScreen(user: {})),
+              builder: (context) => RegularRecordScreen(
+                user: const {},
+                workgroupName: _selectedWorkGroupId?.toString(),
+                useRealData: _useRealData,
+              ),
+            ),
           ),
         ),
         _buildGridItem(
@@ -2149,7 +2252,12 @@ class _DashboardHomeState extends State<DashboardHome> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => const OLAViolateRecordScreen()),
+              builder: (context) => OLAViolateRecordScreen(
+                user: const {},
+                workgroupId: _selectedWorkGroupId,
+                useRealData: _useRealData,
+              ),
+            ),
           ),
         ),
         _buildGridItem(
@@ -2166,7 +2274,12 @@ class _DashboardHomeState extends State<DashboardHome> {
           error: _holdCountError,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const HoldRecordScreen()),
+            MaterialPageRoute(
+              builder: (context) => HoldRecordScreen(
+                workgroupId: _selectedWorkGroupId,
+                useRealData: _useRealData,
+              ),
+            ),
           ),
         ),
       ],
@@ -2195,78 +2308,90 @@ class _DashboardHomeState extends State<DashboardHome> {
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16), topRight: Radius.circular(16)),
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.group_outlined,
-                        color: Colors.white, size: 20),
-                    const SizedBox(width: 10),
-                    const Text('Active Team Members',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15)),
-                  ],
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.group_outlined, color: Colors.white, size: 16),
+                      SizedBox(width: 6),
+                      Expanded(
+                        child: Text('Active Team',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13),
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                    ],
+                  ),
                 ),
-                const Text('1 active',
+                Text('1 active',
                     style: TextStyle(color: Colors.white70, fontSize: 10)),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             child: Column(
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const CircleAvatar(
-                      radius: 18,
+                      radius: 14,
                       backgroundColor: Colors.orange,
-                      child: Icon(Icons.person, color: Colors.white, size: 20),
+                      child: Icon(Icons.person, color: Colors.white, size: 16),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(_currentUserRole ?? 'User',
-                                style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey.shade600)),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(_currentUserRole ?? 'User',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey.shade600)),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Text('Just now',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 4),
                           Text(_currentUserName ?? 'Member...',
                               style: const TextStyle(
-                                  fontWeight: FontWeight.w500, fontSize: 13)),
+                                  fontWeight: FontWeight.w500, fontSize: 12)),
                         ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text('Just now',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold)),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 30), // Match spacing in screenshot
+                const SizedBox(height: 6),
               ],
             ),
           ),
@@ -2297,69 +2422,78 @@ class _DashboardHomeState extends State<DashboardHome> {
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16), topRight: Radius.circular(16)),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(Icons.list_alt, color: Colors.white, size: 20),
-                const SizedBox(width: 10),
-                const Text('Recent Activities',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15)),
+                Icon(Icons.list_alt, color: Colors.white, size: 16),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text('Activities',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13),
+                      overflow: TextOverflow.ellipsis),
+                ),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Column(
-                  children: [
-                    const Icon(Icons.warning_amber_rounded,
-                        color: Colors.amber, size: 28),
-                    const SizedBox(height: 8),
-                    const Text('OLA (1 day left)',
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87)),
-                    const SizedBox(height: 4),
-                    const Text('0',
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black)),
-                    Text('Records',
-                        style: TextStyle(
-                            fontSize: 11, color: Colors.blue.shade700)),
-                  ],
+                Expanded(
+                  child: Column(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded,
+                          color: Colors.amber, size: 24),
+                      const SizedBox(height: 6),
+                      const Text('OLA Violate',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 4),
+                      const Text('0',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black)),
+                      Text('Records',
+                          style: TextStyle(
+                              fontSize: 10, color: Colors.blue.shade700)),
+                    ],
+                  ),
                 ),
                 Container(
-                  height: 60,
+                  height: 50,
                   width: 1,
                   color: Colors.grey.shade200,
                 ),
-                Column(
-                  children: [
-                    const Icon(Icons.article_outlined,
-                        color: Colors.blue, size: 28),
-                    const SizedBox(height: 8),
-                    const Text('Total Tasks',
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87)),
-                    const SizedBox(height: 4),
-                    Text('$_totalTasks',
-                        style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black)),
-                    Text('Tasks',
-                        style: TextStyle(
-                            fontSize: 11, color: Colors.blue.shade700)),
-                  ],
+                Expanded(
+                  child: Column(
+                    children: [
+                      const Icon(Icons.article_outlined,
+                          color: Colors.blue, size: 24),
+                      const SizedBox(height: 6),
+                      const Text('Total Tasks',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 4),
+                      Text('$_totalTasks',
+                          style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black)),
+                      Text('Tasks',
+                          style: TextStyle(
+                              fontSize: 10, color: Colors.blue.shade700)),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -2394,12 +2528,12 @@ class _DashboardHomeState extends State<DashboardHome> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
+                const Row(
                   children: [
-                    const Icon(Icons.assignment_outlined,
+                    Icon(Icons.assignment_outlined,
                         color: Colors.white, size: 20),
-                    const SizedBox(width: 10),
-                    const Text('Notice Board',
+                    SizedBox(width: 10),
+                    Text('Notice Board',
                         style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -2519,14 +2653,14 @@ class _DashboardHomeState extends State<DashboardHome> {
                                 ],
                               ),
                             ),
-                            PopupMenuItem(
+                            const PopupMenuItem(
                               value: 'delete',
                               child: Row(
                                 children: [
-                                  const Icon(Icons.delete_outline,
+                                  Icon(Icons.delete_outline,
                                       size: 18, color: Colors.red),
-                                  const SizedBox(width: 8),
-                                  const Text('Delete Notice',
+                                  SizedBox(width: 8),
+                                  Text('Delete Notice',
                                       style: TextStyle(color: Colors.red)),
                                 ],
                               ),
@@ -3054,16 +3188,13 @@ class _DashboardHomeState extends State<DashboardHome> {
     if (notice.id == null) return;
 
     final updatedPinned = !(notice.isPinned ?? false);
-    final success = await _noticeService.updateNotice(notice.id!, {
-      'id': notice.id,
-      'description': notice.description,
-      'isPinned': updatedPinned,
-      'isActive': notice.isActive,
-      'createdDate': notice.createdDate?.toIso8601String(),
-      'expireDate': notice.expireDate?.toIso8601String(),
-      'createdBy': notice.createdBy,
-      'createdUserName': notice.createdUserName,
-    });
+    final userName = widget.userName ?? _currentUserName ?? 'Unknown';
+    final success = await _noticeService.togglePinNotice(
+      notice.id!,
+      updatedPinned,
+      widget.userId,
+      userName,
+    );
 
     if (success) {
       _fetchNotices(); // Refresh list
@@ -3100,7 +3231,12 @@ class _DashboardHomeState extends State<DashboardHome> {
     );
 
     if (confirm == true) {
-      final success = await _noticeService.deleteNotice(notice.id!);
+      final userName = widget.userName ?? _currentUserName ?? 'Unknown';
+      final success = await _noticeService.deleteNotice(
+        notice.id!,
+        widget.userId,
+        userName,
+      );
       if (success) {
         _fetchNotices(); // Refresh list
       } else {

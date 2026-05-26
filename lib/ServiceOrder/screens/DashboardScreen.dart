@@ -214,7 +214,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const OnboardingScreen(userId: 0),
+            builder: (context) => const OnboardingScreen(),
           ),
         );
         return false;
@@ -241,7 +241,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const OnboardingScreen(userId: 0),
+                  builder: (context) => const OnboardingScreen(),
                 ),
               );
             },

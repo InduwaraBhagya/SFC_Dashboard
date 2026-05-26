@@ -447,10 +447,11 @@
 // }
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../model/Escalation.dart';
 import '../service/EscalationService.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'DashboardScreen.dart';
 
 class EscalationScreen extends StatefulWidget {
   final String accessToken;
@@ -470,16 +471,28 @@ class _EscalationScreenState extends State<EscalationScreen>
   List<Escalation> _filteredEscalations = [];
   bool _isLoading = false;
   String? _errorMessage;
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  int? _userId;
 
   @override
   void initState() {
     super.initState();
+    _loadUserId();
     _escalationService = EscalationService(accessToken: widget.accessToken);
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {});
     });
     _fetchEscalations();
+  }
+
+  Future<void> _loadUserId() async {
+    final storedId = await _storage.read(key: 'userId');
+    if (storedId != null) {
+      setState(() {
+        _userId = int.tryParse(storedId);
+      });
+    }
   }
 
   @override
@@ -567,7 +580,23 @@ class _EscalationScreenState extends State<EscalationScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
-        automaticallyImplyLeading: true,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            if (_userId != null) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DashboardScreen(userId: _userId!),
+                ),
+                (route) => false,
+              );
+            } else {
+              Navigator.pop(context);
+            }
+          },
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Escalations',
