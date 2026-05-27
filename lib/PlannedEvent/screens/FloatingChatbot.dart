@@ -31,7 +31,12 @@ enum _Lang { en }
 // All bot messages keyed by language then step
 const _botTexts = {
   _Lang.en: {
+<<<<<<< HEAD
     'main_menu': 'How can I help you today? Please choose an option:',
+=======
+    'main_menu':
+        'How can I help you today? Please choose an option:',
+>>>>>>> a8ec83341e4f982d2be4d8fed993a7234253dd69
     'pe_menu': 'What would you like to do with Planned Events?',
     'records_menu': 'Which records would you like to view?',
     'bye': 'Thank you! If you need further help, feel free to ask. 😊',
@@ -62,6 +67,7 @@ List<_ChatOption> _peMenuOptions(_Lang l) => [
 String _infoText(String key, _Lang l) {
   const info = {
     'reports': {
+<<<<<<< HEAD
       _Lang.en:
           '📊 Go to the Reports section from the side menu to view PE reports and analytics.',
     },
@@ -96,6 +102,33 @@ String _infoText(String key, _Lang l) {
     'hold': {
       _Lang.en:
           '🟡 Hold Records are PEs currently on hold. View them from the Home dashboard.',
+=======
+      _Lang.en: '📊 Go to the Reports section from the side menu to view PE reports and analytics.',
+    },
+    'escalations': {
+      _Lang.en: '🚨 Go to Escalations from the side menu to track escalated issues.',
+    },
+    'taskqueue': {
+      _Lang.en: '📁 Open Task Queue from PE Management in the side menu to see pending tasks.',
+    },
+    'users': {
+      _Lang.en: '👥 Manage system users from the System Users option in the side menu.',
+    },
+    'view_pe': {
+      _Lang.en: '🔍 Use "View PE Details" from the PE Management section to search and view PE details.',
+    },
+    'urgent': {
+      _Lang.en: '🔴 Urgent Records are PEs that require immediate attention. View them from the Home dashboard.',
+    },
+    'regular': {
+      _Lang.en: '🟢 Regular Records are standard PEs. View them from the Home dashboard.',
+    },
+    'ola': {
+      _Lang.en: '🔵 OLA Violate Records are PEs that have violated OLA timelines. View from the Home dashboard.',
+    },
+    'hold': {
+      _Lang.en: '🟡 Hold Records are PEs currently on hold. View them from the Home dashboard.',
+>>>>>>> a8ec83341e4f982d2be4d8fed993a7234253dd69
     },
   };
   return info[key]?[l] ?? '';
@@ -123,7 +156,12 @@ class _FloatingChatbotState extends State<FloatingChatbot>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
+<<<<<<< HEAD
     _pulseAnim = Tween<double>(begin: 1.0, end: 1.08).animate(_pulseController);
+=======
+    _pulseAnim =
+        Tween<double>(begin: 1.0, end: 1.08).animate(_pulseController);
+>>>>>>> a8ec83341e4f982d2be4d8fed993a7234253dd69
   }
 
   @override
@@ -238,20 +276,32 @@ class _ChatSheetState extends State<_ChatSheet> {
         _addBotMessage(_botTexts[_lang!]!['pe_menu']!, _peMenuOptions(_lang!));
         break;
       case 'back_main':
+<<<<<<< HEAD
         _addBotMessage(
             _botTexts[_lang!]!['main_menu']!, _mainMenuOptions(_lang!));
+=======
+        _addBotMessage(_botTexts[_lang!]!['main_menu']!, _mainMenuOptions(_lang!));
+>>>>>>> a8ec83341e4f982d2be4d8fed993a7234253dd69
         break;
       case 'reports':
       case 'escalations':
       case 'taskqueue':
       case 'users':
+<<<<<<< HEAD
+=======
+
+>>>>>>> a8ec83341e4f982d2be4d8fed993a7234253dd69
       case 'view_pe':
       case 'urgent':
       case 'regular':
       case 'ola':
       case 'hold':
         final text = _infoText(value, _lang!);
+<<<<<<< HEAD
         const backLabel = '⬅ Back to Menu';
+=======
+        final backLabel = '⬅ Back to Menu';
+>>>>>>> a8ec83341e4f982d2be4d8fed993a7234253dd69
         _addBotMessage(text, [_o(backLabel, 'back_main')]);
         break;
       default:
@@ -348,7 +398,12 @@ class _ChatSheetState extends State<_ChatSheet> {
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => const CircleAvatar(
                   backgroundColor: Colors.white24,
+<<<<<<< HEAD
                   child: Icon(Icons.smart_toy_rounded, color: Colors.white),
+=======
+                  child:
+                      Icon(Icons.smart_toy_rounded, color: Colors.white),
+>>>>>>> a8ec83341e4f982d2be4d8fed993a7234253dd69
                 ),
               ),
             ),
@@ -379,7 +434,12 @@ class _ChatSheetState extends State<_ChatSheet> {
                     const SizedBox(width: 5),
                     const Text(
                       'Online',
+<<<<<<< HEAD
                       style: TextStyle(color: Colors.greenAccent, fontSize: 11),
+=======
+                      style:
+                          TextStyle(color: Colors.greenAccent, fontSize: 11),
+>>>>>>> a8ec83341e4f982d2be4d8fed993a7234253dd69
                     ),
                   ],
                 ),
@@ -427,8 +487,13 @@ class _ChatSheetState extends State<_ChatSheet> {
               Flexible(
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 4),
+<<<<<<< HEAD
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+=======
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 10),
+>>>>>>> a8ec83341e4f982d2be4d8fed993a7234253dd69
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: const BorderRadius.only(
@@ -455,7 +520,12 @@ class _ChatSheetState extends State<_ChatSheet> {
         else
           Container(
             margin: const EdgeInsets.only(bottom: 4, left: 48),
+<<<<<<< HEAD
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+=======
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+>>>>>>> a8ec83341e4f982d2be4d8fed993a7234253dd69
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF1565C0), Color(0xFF0D47A1)],
@@ -526,7 +596,12 @@ class _OptionChipState extends State<_OptionChip> {
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
+<<<<<<< HEAD
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+=======
+        padding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+>>>>>>> a8ec83341e4f982d2be4d8fed993a7234253dd69
         decoration: BoxDecoration(
           color: _pressed ? const Color(0xFF1565C0) : Colors.white,
           border: Border.all(color: const Color(0xFF1565C0), width: 1.4),
