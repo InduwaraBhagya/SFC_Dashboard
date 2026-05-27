@@ -8,8 +8,15 @@ import 'package:flutter/foundation.dart';
 
 class UrgentRecordScreen extends StatefulWidget {
   final Map<String, dynamic> user;
+  final int? workgroupId;
+  final bool useRealData;
 
-  const UrgentRecordScreen({super.key, required this.user});
+  const UrgentRecordScreen({
+    super.key,
+    required this.user,
+    this.workgroupId,
+    this.useRealData = false,
+  });
 
   @override
   _UrgentRecordScreenState createState() => _UrgentRecordScreenState();
@@ -41,6 +48,7 @@ class _UrgentRecordScreenState extends State<UrgentRecordScreen> with SingleTick
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
+    _workgroupId = widget.workgroupId;
     _initUserAndFetch();
   }
 
@@ -83,6 +91,7 @@ class _UrgentRecordScreenState extends State<UrgentRecordScreen> with SingleTick
         pageSize: _pageSize,
         searchTerm: _searchTerm,
         workgroupId: _workgroupId,
+        fetchMultiWorkgroup: widget.useRealData,
       );
 
       final List<OLAViolateRecord> newRecords = (result['records'] as List<dynamic>?)?.cast<OLAViolateRecord>() ?? [];

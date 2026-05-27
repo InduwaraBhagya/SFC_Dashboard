@@ -8,8 +8,15 @@ import 'package:flutter/foundation.dart';
 
 class OLAViolateRecordScreen extends StatefulWidget {
   final Map<String, dynamic>? user;
+  final int? workgroupId;
+  final bool useRealData;
 
-  const OLAViolateRecordScreen({super.key, this.user});
+  const OLAViolateRecordScreen({
+    super.key,
+    this.user,
+    this.workgroupId,
+    this.useRealData = false,
+  });
 
   @override
   _OLAViolateRecordScreenState createState() => _OLAViolateRecordScreenState();
@@ -82,6 +89,8 @@ class _OLAViolateRecordScreenState extends State<OLAViolateRecordScreen> with Si
         page: page,
         pageSize: _pageSize,
         searchTerm: _searchTerm,
+        workgroupId: widget.workgroupId,
+        fetchMultiWorkgroup: widget.useRealData,
       );
 
       final List<OLAViolateRecord> newRecords = (result['records'] as List<dynamic>?)?.cast<OLAViolateRecord>() ?? [];

@@ -172,7 +172,7 @@ import 'DashboardHome.dart';
 import 'NotificationScreen.dart';
 import 'WorkGroupScreen.dart';
 import 'PETaskListScreen.dart';
-import '../../CreateUserScreen.dart'; // adjust path if needed
+// adjust path if needed
 
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic>? user;
@@ -214,7 +214,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const OnboardingScreen(userId: 0),
+            builder: (context) => const OnboardingScreen(),
           ),
         );
         return false;
@@ -241,7 +241,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const OnboardingScreen(userId: 0),
+                  builder: (context) => const OnboardingScreen(),
                 ),
               );
             },

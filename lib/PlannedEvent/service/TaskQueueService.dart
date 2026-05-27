@@ -3,8 +3,10 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 import '../model/TaskQueue.dart';
+import 'AuthService.dart';
 
 class TaskQueueService {
+  final AuthService _authService = AuthService();
   String get baseUrl {
     final url = dotenv.env['API_BASE_URL'];
     if (url == null || url.isEmpty) {
@@ -13,10 +15,9 @@ class TaskQueueService {
     return url;
   }
 
-  final String accessToken;
-  TaskQueueService({
-    required this.accessToken,
-  });
+  // TaskQueueService({
+  //   required this.accessToken,
+  // });
 
   Future<List<TaskQueueItem>> getPrioritizedTasks({
     int? workgroupId,
@@ -30,16 +31,20 @@ class TaskQueueService {
         'take': take.toString(),
       };
 
-      final uri = Uri.parse('$baseUrl/api/taskqueue/prioritized').replace(queryParameters: queryParameters);
+      final uri = Uri.parse('$baseUrl/api/taskqueue/prioritized')
+          .replace(queryParameters: queryParameters);
       if (kDebugMode) {
         print('Prioritized Tasks API Request URL: $uri');
       }
 
+      final headers = await _authService.getAuthenticatedHeaders();
       final response = await http.get(
         uri,
         headers: {
-          'Authorization': 'Bearer $accessToken',
+          ...headers,
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'Bypass-Tunnel-Reminder': 'true',
         },
       );
 
@@ -53,7 +58,9 @@ class TaskQueueService {
         if (kDebugMode) {
           print('Prioritized Tasks Raw count: ${jsonData.length}');
         }
-        final tasks = jsonData.map((json) => TaskQueueItem.fromJson(json as Map<String, dynamic>)).toList();
+        final tasks = jsonData
+            .map((json) => TaskQueueItem.fromJson(json as Map<String, dynamic>))
+            .toList();
         if (kDebugMode) {
           print('Prioritized Tasks Parsed count: ${tasks.length}');
         }
@@ -62,7 +69,8 @@ class TaskQueueService {
         if (kDebugMode) {
           print('Prioritized Tasks API Error Response: ${response.body}');
         }
-        throw Exception('Failed to load prioritized tasks: ${response.statusCode}');
+        throw Exception(
+            'Failed to load prioritized tasks: ${response.statusCode}');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -82,16 +90,20 @@ class TaskQueueService {
         if (year != null) 'year': year.toString(),
       };
 
-      final uri = Uri.parse('$baseUrl/api/taskqueue/next').replace(queryParameters: queryParameters);
+      final uri = Uri.parse('$baseUrl/api/taskqueue/next')
+          .replace(queryParameters: queryParameters);
       if (kDebugMode) {
         print('Next Task API Request URL: $uri');
       }
 
+      final headers = await _authService.getAuthenticatedHeaders();
       final response = await http.get(
         uri,
         headers: {
-          'Authorization': 'Bearer $accessToken',
+          ...headers,
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'Bypass-Tunnel-Reminder': 'true',
         },
       );
 
@@ -102,7 +114,9 @@ class TaskQueueService {
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-        return jsonData != null ? TaskQueueItem.fromJson(jsonData as Map<String, dynamic>) : null;
+        return jsonData != null
+            ? TaskQueueItem.fromJson(jsonData as Map<String, dynamic>)
+            : null;
       } else if (response.statusCode == 404) {
         return null;
       } else {
@@ -126,10 +140,11 @@ class TaskQueueService {
         print('Available Years API Request URL: $uri');
       }
 
+      final headers = await _authService.getAuthenticatedHeaders();
       final response = await http.get(
         uri,
         headers: {
-          'Authorization': 'Bearer $accessToken',
+          ...headers,
           'Content-Type': 'application/json',
         },
       );
@@ -146,7 +161,8 @@ class TaskQueueService {
         if (kDebugMode) {
           print('Available Years API Error Response: ${response.body}');
         }
-        throw Exception('Failed to load available years: ${response.statusCode}');
+        throw Exception(
+            'Failed to load available years: ${response.statusCode}');
       }
     } catch (e) {
       if (kDebugMode) {

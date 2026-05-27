@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'PlannedEvent/service/AuthService.dart' as auth;
-import 'CreateUserScreen.dart';
+import 'PlannedEvent/screens/RoleSelectionScreen.dart';
 
 class SigninScreen extends StatefulWidget {
   const SigninScreen({super.key});
@@ -32,14 +32,18 @@ class _SigninScreenState extends State<SigninScreen> {
         print('Login successful! Navigating to dashboard...');
         print('User data: $user');
 
-        // Navigate to dashboard with user data
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CreateUserScreen(),
-            ),
-          );
+        final serviceId = user['ServiceId'];
+        if (serviceId != null) {
+          final existingUser =
+              await _authService.checkUserByServiceId(serviceId);
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const RoleSelectionScreen(),
+              ),
+            );
+          }
         }
       } else {
         print('Login failed: user data is null or empty');

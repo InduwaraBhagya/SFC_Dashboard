@@ -29,13 +29,19 @@ class Notice {
     return Notice(
       id: json['id'] as int?,
       description: json['description'] as String?,
-      createdDate: json['createdDate'] != null ? DateTime.parse(json['createdDate'] as String) : null,
+      createdDate: json['createdDate'] != null
+          ? DateTime.parse(json['createdDate'] as String)
+          : null,
       createdBy: json['createdBy'] as int?,
       createdUserName: json['createdUserName'] as String?,
       isPinned: json['isPinned'] as bool? ?? false,
-      expireDate: json['expireDate'] != null ? DateTime.parse(json['expireDate'] as String) : null,
+      expireDate: json['expireDate'] != null
+          ? DateTime.parse(json['expireDate'] as String)
+          : null,
       isActive: json['isActive'] as bool? ?? true,
-      updatedDate: json['updatedDate'] != null ? DateTime.parse(json['updatedDate'] as String) : null,
+      updatedDate: json['updatedDate'] != null
+          ? DateTime.parse(json['updatedDate'] as String)
+          : null,
       updatedBy: json['updatedBy'] as int?,
       updatedUserName: json['updatedUserName'] as String?,
     );

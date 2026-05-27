@@ -12,7 +12,6 @@ import 'UrgentRecordScreen.dart';
 import 'RegularRecordScreen.dart';
 import 'OLAViolateRecordScreen.dart';
 import 'HoldRecordScreen.dart';
-import '../service/NoticeService.dart';
 import '../model/Notice.dart';
 
 class DashboardHome extends StatefulWidget {
@@ -23,9 +22,9 @@ class DashboardHome extends StatefulWidget {
 }
 
 class _DashboardHomeState extends State<DashboardHome> {
-  bool _isLoadingNotices = false;
+  final bool _isLoadingNotices = false;
   String? _noticesError;
-  List<Notice>? _notices = [];
+  final List<Notice> _notices = [];
   String selectedSearchBy = 'PE Number';
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = false;
@@ -285,7 +284,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                   ),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
-                    value: selectedSearchBy,
+                    initialValue: selectedSearchBy,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.grey.shade100,
@@ -415,8 +414,8 @@ class _DashboardHomeState extends State<DashboardHome> {
                     MaterialPageRoute(
                         builder: (context) =>
                             const UrgentRecordScreen(user: {})),
-                  ).catchError((e) => debugPrint(
-                      'Navigation error to UrgentRecordScreen: $e')),
+                  ).catchError((e) =>
+                      debugPrint('Navigation error to UrgentRecordScreen: $e')),
                 ),
                 _buildGridItem(
                   context,
@@ -531,7 +530,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                                 fontSize: 12,
                               ),
                             )
-                          : _notices == null || _notices!.isEmpty
+                          : _notices.isEmpty
                               ? const Text(
                                   'No active notices',
                                   style: TextStyle(
@@ -542,9 +541,9 @@ class _DashboardHomeState extends State<DashboardHome> {
                               : SizedBox(
                                   height: 150, // Fixed height with scrolling
                                   child: ListView.builder(
-                                    itemCount: _notices!.length,
+                                    itemCount: _notices.length,
                                     itemBuilder: (context, index) {
-                                      final notice = _notices![index];
+                                      final notice = _notices[index];
                                       return Card(
                                         elevation: 2,
                                         margin:

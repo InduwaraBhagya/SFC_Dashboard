@@ -6,7 +6,14 @@ import 'OLAViolateRecordDetailsScreen.dart';
 import 'package:flutter/foundation.dart';
 
 class HoldRecordScreen extends StatefulWidget {
-  const HoldRecordScreen({super.key});
+  final int? workgroupId;
+  final bool useRealData;
+
+  const HoldRecordScreen({
+    super.key,
+    this.workgroupId,
+    this.useRealData = false,
+  });
 
   @override
   _HoldRecordScreenState createState() => _HoldRecordScreenState();
@@ -42,8 +49,13 @@ class _HoldRecordScreenState extends State<HoldRecordScreen> with SingleTickerPr
       _errorMessage = null;
     });
     try {
-      final result = await _service.getHoldRecords(page: page, pageSize: _pageSize);
-      final records = (result['records'] as List<OLAViolateRecord>?) ?? [];
+      final result = await _service.fetchHoldRecords(
+        page: page,
+        pageSize: _pageSize,
+        workgroupId: widget.workgroupId,
+        fetchMultiWorkgroup: widget.useRealData,
+      );
+      final records = (result['records'] as List?)?.cast<OLAViolateRecord>() ?? [];
       setState(() {
         _allRecords = records;
         _currentPage = result['currentPage'] as int? ?? 1;

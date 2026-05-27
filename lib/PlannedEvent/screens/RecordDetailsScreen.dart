@@ -14,13 +14,13 @@ class RecordDetailsScreen extends StatelessWidget {
   });
 
   void _navigateToPETasksScreen(BuildContext context) {
-    if (PERecord.fromJson(record).pENUMBER != null &&
-        PERecord.fromJson(record).pENUMBER!.isNotEmpty) {
+    if (PERecord.fromJson(record).peNumber != null &&
+        PERecord.fromJson(record).peNumber!.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) =>
-              PETaskScreen(peNumber: PERecord.fromJson(record).pENUMBER!),
+              PETaskScreen(peNumber: PERecord.fromJson(record).peNumber!),
         ),
       );
     } else {
@@ -39,10 +39,28 @@ class RecordDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          peRecord.pENUMBER ?? 'Details',
-          style: const TextStyle(
-              fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+        toolbarHeight: 90,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Planned Event',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              peRecord.taskWg ?? 'No Workgroup',
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
         ),
         systemOverlayStyle: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
@@ -79,14 +97,12 @@ class RecordDetailsScreen extends StatelessWidget {
                   icon: Icons.info,
                   fields: [
                     _Field('ID', peRecord.id?.toString() ?? 'N/A'),
-                    _Field('PE Number', peRecord.pENUMBER ?? 'N/A'),
-                    _Field('Customer', peRecord.cUSTOMER ?? 'N/A'),
-                    _Field(
-                        'Contractor Name', peRecord.contractoR_NAME ?? 'N/A'),
-                    _Field(
-                        'Account Manager', peRecord.accounT_MANAGER ?? 'N/A'),
+                    _Field('PE Number', peRecord.peNumber ?? 'N/A'),
+                    _Field('Customer', peRecord.customer ?? 'N/A'),
+                    _Field('Contractor Name', peRecord.contractorName ?? 'N/A'),
+                    _Field('Account Manager', peRecord.accountManager ?? 'N/A'),
                     _Field('Section Handled By',
-                        peRecord.sectioN_HANDLED_BY ?? 'N/A'),
+                        peRecord.sectionHandledBy ?? 'N/A'),
                   ],
                 ),
                 _buildSection(
@@ -94,9 +110,9 @@ class RecordDetailsScreen extends StatelessWidget {
                   title: 'PE Details',
                   icon: Icons.description,
                   fields: [
-                    _Field('PE Activity', peRecord.pE_ACTIVITY ?? 'N/A'),
-                    _Field('PE Nature', peRecord.pE_NATURE ?? 'N/A'),
-                    _Field('PE Title', peRecord.pETITLE ?? 'N/A'),
+                    _Field('PE Activity', peRecord.peActivity ?? 'N/A'),
+                    _Field('PE Nature', peRecord.peNature ?? 'N/A'),
+                    _Field('PE Title', peRecord.peTitle ?? 'N/A'),
                   ],
                 ),
                 _buildSection(
@@ -108,11 +124,11 @@ class RecordDetailsScreen extends StatelessWidget {
                     _Field('Region', peRecord.region ?? 'N/A'),
                     _Field('RTOM', peRecord.rtom ?? 'N/A'),
                     _Field(
-                        'RTOM Description', peRecord.rtoM_DESCRIPTION ?? 'N/A'),
+                        'RTOM Description', peRecord.rtomDescription ?? 'N/A'),
                     _Field('Location A Address',
-                        peRecord.locatioN_A_ADDRESS ?? 'N/A'),
+                        peRecord.locationAAddress ?? 'N/A'),
                     _Field('Location B Address',
-                        peRecord.locatioN_B_ADDRESS ?? 'N/A'),
+                        peRecord.locationBAddress ?? 'N/A'),
                     _Field('LEA', peRecord.lea ?? 'N/A'),
                   ],
                 ),
@@ -122,15 +138,15 @@ class RecordDetailsScreen extends StatelessWidget {
                   icon: Icons.build,
                   fields: [
                     _Field(
-                        'Service Category', peRecord.servicE_CATEGORY ?? 'N/A'),
-                    _Field('Service Type', peRecord.servicE_TYPE ?? 'N/A'),
-                    _Field('Service Speed', peRecord.servicE_SPEED ?? 'N/A'),
-                    _Field('Access Medium', peRecord.accesS_MEDIUM ?? 'N/A'),
+                        'Service Category', peRecord.serviceCategory ?? 'N/A'),
+                    _Field('Service Type', peRecord.serviceType ?? 'N/A'),
+                    _Field('Service Speed', peRecord.serviceSpeed ?? 'N/A'),
+                    _Field('Access Medium', peRecord.accessMedium ?? 'N/A'),
                     _Field('Access Medium A End',
-                        peRecord.accesS_MEDIUM_A_END ?? 'N/A'),
+                        peRecord.accessMediumAEnd ?? 'N/A'),
                     _Field('Access Medium B End',
-                        peRecord.accesS_MEDIUM_B_END ?? 'N/A'),
-                    _Field('NTU Type', peRecord.nTUTYPE ?? 'N/A'),
+                        peRecord.accessMediumBEnd ?? 'N/A'),
+                    _Field('NTU Type', peRecord.ntuType ?? 'N/A'),
                   ],
                 ),
                 _buildSection(
@@ -138,14 +154,14 @@ class RecordDetailsScreen extends StatelessWidget {
                   title: 'Work Order Details',
                   icon: Icons.work,
                   fields: [
-                    _Field('SO Number', peRecord.sONUMBER ?? 'N/A'),
-                    _Field('SO ID', peRecord.sO_ID ?? 'N/A'),
-                    _Field('WO ID', peRecord.wO_ID ?? 'N/A'),
-                    _Field('WO Status', peRecord.wO_STATUS ?? 'N/A'),
+                    _Field('SO Number', peRecord.soNumber ?? 'N/A'),
+                    _Field('SO ID', peRecord.soId ?? 'N/A'),
+                    _Field('WO ID', peRecord.woId ?? 'N/A'),
+                    _Field('WO Status', peRecord.woStatus ?? 'N/A'),
                     _Field('WO Actual Start Date',
-                        peRecord.wO_ACTUAL_START_DATE ?? 'N/A'),
-                    _Field('WO Comments', peRecord.wO_COMMENTS ?? 'N/A'),
-                    _Field('PE WO Comments', peRecord.pE_WO_COMMENTS ?? 'N/A'),
+                        peRecord.woActualStartDate ?? 'N/A'),
+                    _Field('WO Comments', peRecord.woComments ?? 'N/A'),
+                    _Field('PE WO Comments', peRecord.peWoComments ?? 'N/A'),
                   ],
                 ),
                 _buildSection(
@@ -153,9 +169,9 @@ class RecordDetailsScreen extends StatelessWidget {
                   title: 'Additional Details',
                   icon: Icons.details,
                   fields: [
-                    _Field('Order Type', peRecord.ordeR_TYPE ?? 'N/A'),
-                    _Field('CRM Order', peRecord.crM_ORDER ?? 'N/A'),
-                    _Field('Fiber PE Number', peRecord.fibeR_PE_NO ?? 'N/A'),
+                    _Field('Order Type', peRecord.orderType ?? 'N/A'),
+                    _Field('CRM Order', peRecord.crmOrder ?? 'N/A'),
+                    _Field('Fiber PE Number', peRecord.fiberPeNo ?? 'N/A'),
                   ],
                 ),
               ],

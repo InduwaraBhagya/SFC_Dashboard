@@ -56,7 +56,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
-                        OnboardingScreen(userId: existingUser.id!)),
+                        const OnboardingScreen()),
               );
               return;
             }
@@ -142,7 +142,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
             context,
             MaterialPageRoute(
                 builder: (context) =>
-                    OnboardingScreen(userId: createdUser.id!)),
+                    const OnboardingScreen()),
           );
         }
       } catch (e) {

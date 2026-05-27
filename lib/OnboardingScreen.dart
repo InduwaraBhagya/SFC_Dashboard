@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sfc_dashboard/ServiceOrder/ServiceOrderMain.dart';
-import 'package:sfc_dashboard/PlannedEvent/PlannedEventMain.dart';
+
+import 'package:sfc_dashboard/SigninScreen.dart';
+
+enum OnboardingDestination {
+  plannedEvent,
+  serviceOrder,
+}
 
 class OnboardingScreen extends StatelessWidget {
-  final int userId;
-
-  const OnboardingScreen({super.key, required this.userId});
+  const OnboardingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +79,7 @@ class OnboardingScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => PlannedEventMain(userId: userId),
+                      builder: (_) => const SigninScreen(),
                     ),
                   );
                 },

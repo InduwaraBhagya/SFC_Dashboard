@@ -15,13 +15,14 @@ class SystemUser {
 
   factory SystemUser.fromJson(Map<String, dynamic> json) {
     return SystemUser(
-      id: json['id'] as int?,
-      name: json['name'] as String? ?? 'N/A',
-      serviceId: json['serviceId'] as String? ?? 'N/A',
-      userRoleId: json['userRoleId'] as int?,
-      workGroupIds: (json['workGroupIds'] as List<dynamic>?)
-          ?.map((e) => e as int)
-          .toList(),
+      id: (json['id'] ?? json['Id']) as int?,
+      name: (json['name'] ?? json['Name']) as String? ?? 'N/A',
+      serviceId: (json['serviceId'] ?? json['ServiceId']) as String? ?? 'N/A',
+      userRoleId: (json['userRoleId'] ?? json['UserRoleId']) as int?,
+      workGroupIds:
+          ((json['workGroupIds'] ?? json['WorkGroupIds']) as List<dynamic>?)
+              ?.map((e) => e as int)
+              .toList(),
     );
   }
 
